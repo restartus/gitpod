@@ -13,6 +13,7 @@ VOLUME /var/gitlab/redis
 
 COPY gitlab-helm-installer.yaml /var/lib/rancher/k3s/server/manifests/
 COPY persistent-volumes.yaml /var/lib/rancher/k3s/server/manifests/
+COPY database-secret.yaml /var/lib/rancher/k3s/server/manifests/
 
 COPY entrypoint.sh /entrypoint
 
