@@ -11,6 +11,11 @@ if [ -z "$BASEDOMAIN" ]; then
 fi
 
 
+# Fix volume ownerships
+[ -d "/var/gitpod/gitaly" ] && chown 1000 /var/gitpod/gitaly
+[ -d "/var/gitpod/minio" ] && chown 1000 /var/gitpod/minio
+[ -d "/var/gitpod/postgresql" ] && chown 1001 /var/gitpod/postgresql
+
 
 # Add IP tables rules to access Docker's internal DNS 127.0.0.11 from outside
 # based on https://serverfault.com/a/826424
