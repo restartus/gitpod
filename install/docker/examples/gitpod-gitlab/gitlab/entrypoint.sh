@@ -15,6 +15,7 @@ fi
 [ -d "/var/gitlab/gitaly" ] && chown 1000 /var/gitlab/gitaly
 [ -d "/var/gitlab/minio" ] && chown 1000 /var/gitlab/minio
 [ -d "/var/gitlab/postgresql" ] && chown 1001 /var/gitlab/postgresql
+[ -d "/var/gitlab/redis" ] && chown 1001 /var/gitlab/redis
 
 
 # Add IP tables rules to access Docker's internal DNS 127.0.0.11 from outside
@@ -70,6 +71,16 @@ installation_completed_hook() {
 
     echo "Removing installer manifest ..."
     rm -f /var/lib/rancher/k3s/server/manifests/gitlab-helm-intaller.yaml
+
+    echo "Backup secrets ..."
+    mkdir -p /var/gitlab/secrets-backup
+    printf "secrets.yml:" > /var/gitlab/secrets-backup/secrets.yaml
+    kubectl get secrets gitlab-rails-secret -o jsonpath="{.data['secrets\.yml']}" >> /var/gitlab/secrets-backup/secrets.yaml
+    
+    printf "postgresql-password: " > /var/gitlab/secrets/backup/postgresql-passwords.yaml
+    kubectl get secrets gitlab-postgresql-password -o jsonpath="{.data.postgresql-password}" >> /var/gitlab/secrets/backup/postgresql-passwords.yaml
+    printf "postgresql-postgres-password: " > /var/gitlab/secrets/backup/postgresql-passwords.yaml
+    kubectl get secrets gitlab-postgresql-password -o jsonpath="{.data.postgresql-postgres-password}" >> /var/gitlab/secrets/backup/postgresql-passwords.yaml
 }
 installation_completed_hook &
 
@@ -87,6 +98,36 @@ data:
   cert: $FULLCHAIN
   key: $PRIVKEY
 EOF
+
+
+# add rails secret
+if [ -f /var/gitlab/secrets-backup/secrets.yaml ]; then
+cat << EOF > /var/lib/rancher/k3s/server/manifests/rails-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-rails-secret
+  labels:
+    app: shared-secrets
+type: Opaque
+data:
+EOF
+sed 's/^/  /' /var/gitlab/secrets-backup/secrets.yaml >> /var/lib/rancher/k3s/server/manifests/rails-secrets.yaml
+fi
+
+
+# add postgresql passwords secret
+if [ -f /var/gitlab/secrets-backup/postgresql-passwords.yaml ]; then
+cat << EOF > /var/lib/rancher/k3s/server/manifests/postgresql-passwords.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-postgresql-password
+type: Opaque
+data:
+EOF
+sed 's/^/  /' /var/gitlab/secrets-backup/postgresql-passwords.yaml >> /var/lib/rancher/k3s/server/manifests/postgresql-passwords.yaml
+fi
 
 
 # start k3s
