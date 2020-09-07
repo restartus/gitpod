@@ -72,11 +72,15 @@ installation_completed_hook() {
     echo "Removing installer manifest ..."
     rm -f /var/lib/rancher/k3s/server/manifests/gitlab-helm-intaller.yaml
 
+
     echo "Backup secrets ..."
     mkdir -p /var/gitlab/secrets-backup
+
+    while [ -z "$(kubectl get secrets gitlab-rails-secret | grep Opaque)" ]; do sleep 10; done
     printf "secrets.yml:" > /var/gitlab/secrets-backup/secrets.yaml
     kubectl get secrets gitlab-rails-secret -o jsonpath="{.data['secrets\.yml']}" >> /var/gitlab/secrets-backup/secrets.yaml
     
+    while [ -z "$(kubectl get secrets gitlab-postgresql-password | grep Opaque)" ]; do sleep 10; done
     printf "postgresql-password: " > /var/gitlab/secrets/backup/postgresql-passwords.yaml
     kubectl get secrets gitlab-postgresql-password -o jsonpath="{.data.postgresql-password}" >> /var/gitlab/secrets/backup/postgresql-passwords.yaml
     printf "postgresql-postgres-password: " > /var/gitlab/secrets/backup/postgresql-passwords.yaml
