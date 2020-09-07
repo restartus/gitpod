@@ -81,10 +81,10 @@ installation_completed_hook() {
     kubectl get secrets gitlab-rails-secret -o jsonpath="{.data['secrets\.yml']}" >> /var/gitlab/secrets-backup/secrets.yaml
     
     while [ -z "$(kubectl get secrets gitlab-postgresql-password | grep Opaque)" ]; do sleep 10; done
-    printf "postgresql-password: " > /var/gitlab/secrets/backup/postgresql-passwords.yaml
-    kubectl get secrets gitlab-postgresql-password -o jsonpath="{.data.postgresql-password}" >> /var/gitlab/secrets/backup/postgresql-passwords.yaml
-    printf "postgresql-postgres-password: " > /var/gitlab/secrets/backup/postgresql-passwords.yaml
-    kubectl get secrets gitlab-postgresql-password -o jsonpath="{.data.postgresql-postgres-password}" >> /var/gitlab/secrets/backup/postgresql-passwords.yaml
+    printf "postgresql-password: " > /var/gitlab/secrets-backup/postgresql-passwords.yaml
+    kubectl get secrets gitlab-postgresql-password -o jsonpath="{.data.postgresql-password}" >> /var/gitlab/secrets-backup/postgresql-passwords.yaml
+    printf "\npostgresql-postgres-password: " >> /var/gitlab/secrets-backup/postgresql-passwords.yaml
+    kubectl get secrets gitlab-postgresql-password -o jsonpath="{.data.postgresql-postgres-password}" >> /var/gitlab/secrets-backup/postgresql-passwords.yaml
 }
 installation_completed_hook &
 
