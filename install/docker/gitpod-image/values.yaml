@@ -17,3 +17,14 @@ components:
       spec:
         dnsConfig: null
         dnsPolicy: ClusterFirst
+
+docker-registry:
+  persistence:
+    enabled: true
+    existingClaim: docker-registry
+minio:
+  persistence:
+    existingClaim: minio
+mysql:
+  persistence:
+    existingClaim: mysql

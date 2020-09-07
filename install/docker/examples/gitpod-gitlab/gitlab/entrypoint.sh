@@ -11,6 +11,26 @@ if [ -z "$BASEDOMAIN" ]; then
 fi
 
 
+
+# Add IP tables rules to access Docker's internal DNS 127.0.0.11 from outside
+# based on https://serverfault.com/a/826424
+
+TCP_DNS_ADDR=$(iptables-save | grep DOCKER_OUTPUT | grep tcp | grep -o '127\.0\.0\.11:.*$')
+UDP_DNS_ADDR=$(iptables-save | grep DOCKER_OUTPUT | grep udp | grep -o '127\.0\.0\.11:.*$')
+
+iptables -t nat -A PREROUTING -p tcp --dport 53 -j DNAT --to "$TCP_DNS_ADDR"
+iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to "$UDP_DNS_ADDR"
+
+
+# Add this IP to resolv.conf since CoreDNS of k3s uses this file
+
+TMP_FILE=$(mktemp)
+sed "/nameserver.*/ a nameserver $(hostname -i | cut -f1 -d' ')" /etc/resolv.conf > "$TMP_FILE"
+cp "$TMP_FILE" /etc/resolv.conf
+rm "$TMP_FILE"
+
+
+
 # prepare GitLab helm installer
 GITLAB_HELM_INSTALLER_FILE=/var/lib/rancher/k3s/server/manifests/gitlab-helm-installer.yaml
 
@@ -64,28 +84,5 @@ data:
 EOF
 
 
-# patch DNS config if DNSSERVER environment variable is given
-if [ -n "$BASEDOMAIN" ] && [ -n "$DNSSERVER" ]; then
-    patchdns() {
-        echo "Waiting for CoreDNS to patch config ..."
-        while [ -z "$(kubectl get pods -n kube-system | grep coredns | grep Running)" ]; do sleep 10; done
-
-        BASEDOMAIN=$1
-        DNSSERVER=$2
-
-        if [ -z "$(kubectl get configmap -n kube-system coredns -o json | grep $BASEDOMAIN)" ]; then
-            echo "Patching CoreDNS config ..."
-
-            kubectl get configmap -n kube-system coredns -o json | \
-                sed -e "s+.:53+$BASEDOMAIN {\\\\n  forward . $DNSSERVER\\\\n}\\\\n.:53+g" | \
-                kubectl apply -f -
-            echo "CoreDNS config patched."
-        else
-            echo "CoreDNS has been patched already."
-        fi
-    }
-    patchdns "$BASEDOMAIN" "$DNSSERVER" &
-fi
-
 # start k3s
-/bin/k3s server --disable traefik --cluster-cidr 10.52.0.0/16 --service-cidr 10.53.0.0/16 --cluster-dns 10.53.0.10
+/bin/k3s server --disable traefik
