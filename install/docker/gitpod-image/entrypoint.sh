@@ -5,8 +5,8 @@
 
 set -eu
 
-mount --make-shared /sys/fs/cgroup
 mount --make-shared /var/gitpod/workspaces
+mount --make-shared /sys/fs/cgroup
 mount --make-shared /proc
 
 
@@ -38,7 +38,7 @@ echo "BASEDOMAIN:           $BASEDOMAIN"
 
 
 # Fix docker-registry volume ownership
-[-f "/var/gitpod/docker-registry" ] && chown 1000 /var/gitpod/docker-registry
+[ -d "/var/gitpod/docker-registry" ] && chown 1000 /var/gitpod/docker-registry
 
 
 # Add IP tables rules to access Docker's internal DNS 127.0.0.11 from outside
@@ -52,11 +52,19 @@ iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to "$UDP_DNS_ADDR"
 
 
 # Add this IP to resolv.conf since CoreDNS of k3s uses this file
-
-TMP_FILE=$(mktemp)
-sed "/nameserver.*/ a nameserver $(hostname -i | cut -f1 -d' ')" /etc/resolv.conf > "$TMP_FILE"
-cp "$TMP_FILE" /etc/resolv.conf
-rm "$TMP_FILE"
+create_resolv_conf() {
+    TMP_FILE=$(mktemp)
+    echo "nameserver 127.0.0.11" > "$TMP_FILE"
+    echo "nameserver $(hostname -i | cut -f1 -d' ')" >> "$TMP_FILE"
+    additional_nameserver=${1:-}
+    if [ -n "$additional_nameserver" ]; then
+        echo "nameserver $additional_nameserver" >> "$TMP_FILE"
+    fi
+    echo "options ndots:0" >>  "$TMP_FILE"
+    cp "$TMP_FILE" /etc/resolv.conf
+    rm "$TMP_FILE"
+}
+create_resolv_conf
 
 
 
@@ -116,11 +124,7 @@ EOF
 
     # modify resolv.conf so that registry.default.svc.cluster.local can be resolved from the node
     KUBE_DNS_IP=$(kubectl -n kube-system get service kube-dns -o jsonpath='{.spec.clusterIP}')
-    TMP_FILE=$(mktemp)
-    sed "s/nameserver.*/nameserver $KUBE_DNS_IP/g" /etc/resolv.conf > "$TMP_FILE"
-    cp "$TMP_FILE" /etc/resolv.conf
-    rm "$TMP_FILE"
-    cat /etc/resolv.conf
+    create_resolv_conf "$KUBE_DNS_IP"
 }
 
 

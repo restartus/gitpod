@@ -7,8 +7,8 @@ metadata:
     app: mysql
 spec:
   storageClassName: manual
-  # capacity:
-  #   storage: 8Gi
+  capacity:
+    storage: 8Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -22,9 +22,9 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: manual
-  # resources:
-  #   requests:
-  #     storage: 8Gi
+  resources:
+    requests:
+      storage: 8Gi
   selector:
     matchLabels:
       app: mysql
@@ -35,10 +35,11 @@ metadata:
   name: minio
   labels:
     type: local
+    app: minio
 spec:
   storageClassName: manual
-  # capacity:
-  #   storage: 50Gi
+  capacity:
+    storage: 50Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -52,9 +53,9 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: manual
-  # resources:
-  #   requests:
-  #     storage: 8Gi
+  resources:
+    requests:
+      storage: 50Gi
   selector:
     matchLabels:
       app: minio
@@ -65,10 +66,11 @@ metadata:
   name: docker-registry
   labels:
     type: local
+    app: docker-registry
 spec:
   storageClassName: manual
-  # capacity:
-  #   storage: 50Gi
+  capacity:
+    storage: 50Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -82,9 +84,9 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: manual
-  # resources:
-  #   requests:
-  #     storage: 8Gi
+  resources:
+    requests:
+      storage: 50Gi
   selector:
     matchLabels:
       app: docker-registry
