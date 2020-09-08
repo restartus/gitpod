@@ -34,9 +34,7 @@ spec:
           app: minio
     postgresql:
       persistence:
-        storageClass: manual
-        matchLabels:
-          app: postgresql
+        existingClaim: postgresql
     redis:
       persistence:
         storageClass: manual

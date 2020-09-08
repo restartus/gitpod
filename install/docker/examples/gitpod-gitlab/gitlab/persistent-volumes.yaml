@@ -47,6 +47,21 @@ spec:
     path: "/var/gitlab/postgresql"
 ---
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 8Gi
+  selector:
+    matchLabels:
+      app: postgresql
+---
+apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: redis

@@ -77,10 +77,12 @@ installation_completed_hook() {
     mkdir -p /var/gitlab/secrets-backup
 
     while [ -z "$(kubectl get secrets gitlab-rails-secret | grep Opaque)" ]; do sleep 10; done
+    [ -f /var/gitlab/secrets-backup/secrets.yaml ] && cp /var/gitlab/secrets-backup/secrets.yaml /var/gitlab/secrets-backup/secrets_backup.yaml
     printf "secrets.yml:" > /var/gitlab/secrets-backup/secrets.yaml
     kubectl get secrets gitlab-rails-secret -o jsonpath="{.data['secrets\.yml']}" >> /var/gitlab/secrets-backup/secrets.yaml
     
     while [ -z "$(kubectl get secrets gitlab-postgresql-password | grep Opaque)" ]; do sleep 10; done
+    [ -f /var/gitlab/secrets-backup/postgresql-passwords.yaml ] && cp /var/gitlab/secrets-backup/postgresql-passwords.yaml /var/gitlab/secrets-backup/postgresql-passwords_backup.yaml
     printf "postgresql-password: " > /var/gitlab/secrets-backup/postgresql-passwords.yaml
     kubectl get secrets gitlab-postgresql-password -o jsonpath="{.data.postgresql-password}" >> /var/gitlab/secrets-backup/postgresql-passwords.yaml
     printf "\npostgresql-postgres-password: " >> /var/gitlab/secrets-backup/postgresql-passwords.yaml
@@ -106,6 +108,7 @@ EOF
 
 # add rails secret
 if [ -f /var/gitlab/secrets-backup/secrets.yaml ]; then
+echo "Restoring gitlab-rails-secret ..."
 cat << EOF > /var/lib/rancher/k3s/server/manifests/rails-secrets.yaml
 apiVersion: v1
 kind: Secret
@@ -122,6 +125,7 @@ fi
 
 # add postgresql passwords secret
 if [ -f /var/gitlab/secrets-backup/postgresql-passwords.yaml ]; then
+echo "Restoring gitlab-postgresql-password ..."
 cat << EOF > /var/lib/rancher/k3s/server/manifests/postgresql-passwords.yaml
 apiVersion: v1
 kind: Secret
