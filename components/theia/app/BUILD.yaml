@@ -3,9 +3,7 @@ packages:
     type: yarn
     srcs:
       - package.json
-      - "scripts/post-generate.js"
       - "webpack.config.js"
-      - "startup.sh"
       - "**/*.ico"
     deps:
       - components/gitpod-protocol:lib
@@ -31,11 +29,10 @@ packages:
     type: docker
     srcs:
       - "package-libs.sh"
-      - "supervisor-config.json"
+      - "startup.sh"
     deps:
       - :installer
       - :builtin-plugins
-      - components/supervisor:app
     argdeps:
       - imageRepoBase
     config:
