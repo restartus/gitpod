@@ -150,6 +150,13 @@ func matchIDEQuery(mustBePresent bool) mux.MatcherFunc {
 
 // SupervisorIDEHostHandler matches only when the request is / or /index.html and serves supervisor's IDE host index.html
 func SupervisorIDEHostHandler(r *mux.Router, config *RouteHandlerConfig) {
+	// strip the frontend prefix, just for good measure
+	r.Use(func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+			req.URL.Path = strings.TrimPrefix(req.URL.Path, "/_supervisor/frontend")
+			h.ServeHTTP(resp, req)
+		})
+	})
 	r.NewRoute().Handler(proxyPass(config, func(cfg *Config, req *http.Request) (tgt *url.URL, err error) {
 		var dst url.URL
 		dst.Scheme = cfg.BlobServer.Scheme

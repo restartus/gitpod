@@ -1,8 +1,12 @@
 packages:
   - name: app
-    type: generic
+    type: yarn
     srcs:
-      - "index.html"
+      - "src/**"
+      - "public/**"
+      - package.json
+      - webpack.config.js
+      - tsconfig.json
     config:
-      commands:
-        - ["echo"]
+      dontTest: true
+      yarnLock: ${coreYarnLockBase}/../yarn.lock

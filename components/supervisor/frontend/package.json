@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "name": "@gitpod/supervisor-frontend",
+  "license": "UNLICENSED",
+  "version": "0.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "concurrently": "^5.3.0",
+    "css-loader": "^4.2.2",
+    "html-webpack-plugin": "^4.4.1",
+    "style-loader": "^1.2.1",
+    "typescript": "^3.9.3",
+    "webpack": "^4.40.0",
+    "webpack-cli": "^3.1.1"
+  },
+  "scripts": {
+    "build": "tsc && webpack --mode=production",
+    "watch": "concurrently \"tsc --watch\" \"webpack --mode=development\""
+  }
+}
