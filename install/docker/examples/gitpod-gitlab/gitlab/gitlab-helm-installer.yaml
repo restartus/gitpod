@@ -37,6 +37,5 @@ spec:
         existingClaim: postgresql
     redis:
       persistence:
-        storageClass: manual
-        matchLabels:
-          app: redis
+        storageClass: '-'
+        volumeName: redis

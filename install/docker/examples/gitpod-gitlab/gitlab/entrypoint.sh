@@ -78,7 +78,7 @@ installation_completed_hook() {
 
     while [ -z "$(kubectl get secrets gitlab-rails-secret | grep Opaque)" ]; do sleep 10; done
     [ -f /var/gitlab/secrets-backup/secrets.yaml ] && cp /var/gitlab/secrets-backup/secrets.yaml /var/gitlab/secrets-backup/secrets_backup.yaml
-    printf "secrets.yml:" > /var/gitlab/secrets-backup/secrets.yaml
+    printf "secrets.yml: " > /var/gitlab/secrets-backup/secrets.yaml
     kubectl get secrets gitlab-rails-secret -o jsonpath="{.data['secrets\.yml']}" >> /var/gitlab/secrets-backup/secrets.yaml
     
     while [ -z "$(kubectl get secrets gitlab-postgresql-password | grep Opaque)" ]; do sleep 10; done
